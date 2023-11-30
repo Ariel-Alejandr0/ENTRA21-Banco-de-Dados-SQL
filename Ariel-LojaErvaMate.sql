@@ -1,15 +1,3 @@
--- CRIANDO DATABASE
-CREATE DATABASE Loja;
-USE Loja;
-
-
--- CRIANDO USUÁRIO
-CREATE USER 'admin'@'localhost'    IDENTIFIED BY 'adminloja123';
-GRANT ALL PRIVILEGES ON Loja.* TO 'admin'@'localhost';-- CRIANDO PRIVILÉGIOS DO USUÁRIO
-
-CREATE USER 'vendedor'@'localhost' IDENTIFIED BY 'vendedorloja123';
-
-
 
 -- CRIANDO TABELAS 
 CREATE TABLE Produtos (
@@ -34,7 +22,13 @@ CREATE TABLE Saida_Estoque (
     data_saida     DATE,
     FOREIGN KEY (id_produto) REFERENCES Produtos(id_produto)
 );  
-GRANT INSERT, SELECT, UPDATE, DELETE  ON Loja.Produtos TO 'vendedor'@'localhost'; -- garante comando CRUD DML para o usuário vendedor na table Produtos
+
+CREATE TABLE Estoque_Minimo (
+    id_estoque_minimo INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_produto        INT NOT NULL,
+    estoque_minimo    INT NOT NULL,
+    FOREIGN KEY (id_produto) REFERENCES Produtos(id_produto)
+);
 
 -- Tema: Loja de erva-mate
 
@@ -78,10 +72,17 @@ INSERT INTO Saida_Estoque (id_produto, quantidade, data_saida) VALUES
 (2, 1,'2023-11-15'),  (2, 14, '2023-11-16'),  (2, 2, '2023-11-17'),
 (7, 1,'2023-11-15'),  (10, 3, '2023-11-16'),  (10, 2, '2023-11-17');
 
+
 DELETE FROM Saida_Estoque WHERE id_saida > 21;
 
 SELECT * FROM Saida_Estoque;
 SELECT nome_produto FROM Produtos WHERE id_produto = 1;
+
+-- insert estoque minimo
+
+INSERT INTO Estoque_Minimo (estoque_minimo, id_produto) VALUES 
+(17, 1), (18, 2),  (20, 3), (21, 4),(70, 5), 
+(32, 6), (80, 7), (90, 8),   (91, 9), (92, 10);
 
 -- SELECTs
 SELECT * FROM Produtos WHERE nome_produto LIKE '%y%';
@@ -120,6 +121,22 @@ UPDATE Saida_Estoque SET quantidade = 16 WHERE id_saida = 3;
 UPDATE Saida_Estoque SET quantidade = 38 WHERE id_saida = 10;
 UPDATE Saida_Estoque SET quantidade = 17 WHERE id_saida = 13;
 
+-- select de produtos com estoque abaixo do mínimo 
 
-
+SELECT 
+	tbProduto.id_produto,
+    tbProduto.nome_produto,
+    tbEntradas.total_entradas,
+    tbSaidas.total_saidas,
+    (tbEntradas.total_entradas) - COALESCE(tbSaidas.total_saidas, 0) AS saldo_atual
+    FROM Produtos AS tbProduto
+    INNER JOIN (SELECT id_produto, SUM(quantidade) AS total_entradas
+		FROM Entrada_Estoque GROUP BY id_produto) tbEntradas
+        ON tbProduto.id_produto = tbEntradas.id_produto
+	LEFT JOIN (SELECT id_produto, SUM(quantidade) AS total_saidas
+		FROM Saida_Estoque GROUP BY id_produto) tbSaidas
+        ON tbProduto.id_produto = tbSaidas.id_produto;
+    LEFT JOIN (SELECT id_produto, SUM(quantidade) AS estoque_baixo
+    		FROM Estoque_Minimo WHERE saldo_atual < estoque_minimo GROUP BY id_produto) tbMinimo
+            ON tbProduto.id_produto = tbMinimo.id_estoque_minimo;
 
