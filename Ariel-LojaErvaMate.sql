@@ -133,19 +133,16 @@ UPDATE Saida_Estoque SET quantidade = 17 WHERE id_saida = 13;
 
 -- select de produtos com estoque abaixo do mínimo 
 
-SELECT 
-	tbProduto.id_produto,
-    tbProduto.nome_produto,
-    tbEntradas.total_entradas,
-    tbSaidas.total_saidas,
-    (tbEntradas.total_entradas) - COALESCE(tbSaidas.total_saidas, 0) AS saldo_atual
-    FROM Produtos AS tbProduto
-    INNER JOIN (SELECT id_produto, SUM(quantidade) AS total_entradas
-		FROM Entrada_Estoque GROUP BY id_produto) tbEntradas
-        ON tbProduto.id_produto = tbEntradas.id_produto
-	LEFT JOIN (SELECT id_produto, SUM(quantidade) AS total_saidas
-		FROM Saida_Estoque GROUP BY id_produto) tbSaidas
-        ON tbProduto.id_produto = tbSaidas.id_produto;
-    LEFT JOIN (SELECT id_produto, SUM(quantidade) AS estoque_baixo
-    		FROM Estoque_Minimo WHERE saldo_atual < estoque_minimo GROUP BY id_produto) tbMinimo
-            ON tbProduto.id_produto = tbMinimo.id_estoque_minimo;
+SELECT
+    Produtos.id_produto,
+    Produtos.nome_produto,
+    Estoque_Minimo.estoque_minimo,
+    (COALESCE(SUM(Entrada_Estoque.quantidade), 0) - COALESCE(SUM(Saida_Estoque.quantidade), 0)) AS saldo_atual
+    FROM Produtos
+    INNER JOIN Estoque_Minimo ON Produtos.id_produto = Estoque_Minimo.id_produto
+    INNER JOIN Entrada_Estoque ON Produtos.id_produto = Entrada_Estoque.id_produto
+    INNER JOIN Saida_Estoque ON Produtos.id_produto = Saida_Estoque.id_produto
+    GROUP BY
+        Produtos.id_produto, Produtos.nome_produto, Estoque_Minimo.estoque_minimo
+    HAVING
+        saldo_atual < Estoque_Minimo.estoque_minimo;
