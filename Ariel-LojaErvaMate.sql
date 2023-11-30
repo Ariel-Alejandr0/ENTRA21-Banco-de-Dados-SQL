@@ -1,3 +1,11 @@
+-- CRIANDO DATABASE
+CREATE DATABASE Loja;
+USE Loja;
+
+CREATE USER 'admin'@'localhost'    IDENTIFIED BY 'adminloja123';
+GRANT ALL PRIVILEGES ON Loja.* TO 'admin'@'localhost';-- CRIANDO PRIVILÉGIOS DO USUÁRIO
+
+CREATE USER 'vendedor'@'localhost' IDENTIFIED BY 'vendedorloja123';
 
 -- CRIANDO TABELAS 
 CREATE TABLE Produtos (
@@ -29,6 +37,8 @@ CREATE TABLE Estoque_Minimo (
     estoque_minimo    INT NOT NULL,
     FOREIGN KEY (id_produto) REFERENCES Produtos(id_produto)
 );
+
+GRANT INSERT, SELECT, UPDATE, DELETE  ON Loja.Produtos TO 'vendedor'@'localhost'; -- garante comando CRUD DML para o usuário vendedor na table Produtos
 
 -- Tema: Loja de erva-mate
 
@@ -139,4 +149,3 @@ SELECT
     LEFT JOIN (SELECT id_produto, SUM(quantidade) AS estoque_baixo
     		FROM Estoque_Minimo WHERE saldo_atual < estoque_minimo GROUP BY id_produto) tbMinimo
             ON tbProduto.id_produto = tbMinimo.id_estoque_minimo;
-
