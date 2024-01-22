@@ -19,7 +19,7 @@ CREATE TABLE Produtos (
     estoque_minimo INT 			  NOT NULL
 );
 
-CREATE TABLE Entrada_Estoque (
+CREATE TABLE Entradas_Estoque (
 	id_entrada     INT  AUTO_INCREMENT PRIMARY KEY,
     id_produto     INT  NOT NULL,
     quantidade     INT 	NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE Entrada_Estoque (
     FOREIGN KEY (id_produto) REFERENCES Produtos(id_produto)
 );
 
-CREATE TABLE Saida_Estoque (
+CREATE TABLE Saidas_Estoque (
 	id_saida       INT AUTO_INCREMENT PRIMARY KEY,
     id_produto     INT  NOT NULL,
     quantidade     INT  NOT NULL,
